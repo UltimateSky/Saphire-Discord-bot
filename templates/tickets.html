@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Tickets - ProBot{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 2rem;">
+    <i class="fa-solid fa-ticket" style="font-size: 1.8rem; color: var(--text-primary);"></i>
+    <h1 style="font-size: 1.8rem;">Ticket Transcripts</h1>
+</div>
+
+<div class="settings-section">
+    <div class="section-title">Closed Tickets</div>
+    <div class="settings-group" style="padding: 1.5rem;">
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <th style="padding: 1rem 1rem 1rem 0; width: 60px;">ID</th>
+                        <th style="padding: 1rem;">Ticket Name</th>
+                        <th style="padding: 1rem;">Opened By</th>
+                        <th style="padding: 1rem;">Date Closed</th>
+                        <th style="padding: 1rem; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if transcripts %}
+                        {% for t in transcripts %}
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                            <td style="padding: 1rem 1rem 1rem 0; color: var(--text-muted); font-weight: 600;">
+                                #{{ t.id }}
+                            </td>
+                            <td style="padding: 1rem; font-weight: 500;">
+                                <i class="fa-solid fa-hashtag" style="color: var(--text-muted); margin-right: 5px;"></i> {{ t.ticket_name }}
+                            </td>
+                            <td style="padding: 1rem; color: var(--text-secondary);">
+                                {{ t.username }}
+                            </td>
+                            <td style="padding: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+                                {{ t.created_at }}
+                            </td>
+                            <td style="padding: 1rem; text-align: right;">
+                                <a href="{{ url_for('view_transcript', transcript_id=t.id) }}" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="fa-solid fa-eye"></i> View Log
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+                                <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5; display: block;"></i>
+                                No transcripts found. When a ticket is closed in Discord, its log will appear here.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Home - ProBot Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <i class="fa-solid fa-grid-2"></i>
+    <h1>Servers</h1>
+</div>
+
+<div class="settings-section">
+    <div class="section-title" style="margin-bottom: 0;">Select a Server to Manage</div>
+    
+    <div class="server-grid">
+        {% if bot and bot.guilds %}
+            {% for g in bot.guilds %}
+            <a href="{{ url_for('dashboard') }}?guild_id={{ g.id }}" class="server-grid-card">
+                {% if g.icon %}
+                <img src="{{ g.icon.url }}" alt="{{ g.name }}" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 1rem; box-shadow: 0 8px 16px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.05); object-fit: cover;">
+                {% else %}
+                <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="{{ g.name }}" style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 1rem; box-shadow: 0 8px 16px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.05); object-fit: cover;">
+                {% endif %}
+                <h3>{{ g.name }}</h3>
+                <p>{{ g.member_count }} Members</p>
+                <div class="btn btn-primary btn-sm" style="width: 100%;"><i class="fa-solid fa-gear"></i> Manage</div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="setting-card" style="grid-column: 1 / -1; justify-content: center; text-align: center; padding: 4rem 2rem;">
+                <div style="color: var(--text-muted);">
+                    <i class="fa-solid fa-server" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3>No Servers Found</h3>
+                    <p>The bot is not in any servers currently.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="settings-section" style="margin-top: 4rem;">
+    <div class="section-title">Bot Statistics</div>
+    <div class="settings-group">
+        <div class="setting-card" style="justify-content: space-around; padding: 3rem 1rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">{{ bot.guilds | length if bot else 0 }}</div>
+                <div style="font-size: 0.85rem; color: var(--accent-indigo); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">Total Servers</div>
+            </div>
+            <div style="width: 1px; height: 50px; background: var(--border-color);"></div>
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">{{ bot.users | length if bot else 0 }}</div>
+                <div style="font-size: 0.85rem; color: var(--accent-purple); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">Cached Users</div>
+            </div>
+            <div style="width: 1px; height: 50px; background: var(--border-color);"></div>
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem; font-family: 'Outfit', sans-serif;">{{ bot.latency | round(3) * 1000 if bot else 0 }}</div>
+                <div style="font-size: 0.85rem; color: var(--success-color); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">Ping (ms)</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

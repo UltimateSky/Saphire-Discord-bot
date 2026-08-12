@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ProBot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <i class="fa-solid fa-gear"></i>
+    <h1>General Settings</h1>
+</div>
+
+{% if selected_guild %}
+<form id="configForm">
+    <input type="hidden" id="config_guild_id" value="{{ selected_guild.id }}">
+    
+    <div class="settings-section">
+        <div class="section-title">Configurations</div>
+        <div class="settings-group">
+            
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Log Channel</h3>
+                    <p>Pilih channel untuk mengirim log moderasi (pesan dihapus, peringatan, dll).</p>
+                </div>
+                <div class="setting-control">
+                    <select id="log_channel_id" class="sapphire-select">
+                        <option value="">-- Disabled --</option>
+                        {% for channel in selected_guild.text_channels %}
+                        <option value="{{ channel.id }}" {% if log_channel_id == channel.id %}selected{% endif %}># {{ channel.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Ticket Category</h3>
+                    <p>Pilih kategori Discord tempat channel tiket baru akan dibuat.</p>
+                </div>
+                <div class="setting-control">
+                    <select id="ticket_category_id" class="sapphire-select">
+                        <option value="">-- Disabled --</option>
+                        {% for cat in selected_guild.categories %}
+                        <option value="{{ cat.id }}" {% if ticket_category_id == cat.id %}selected{% endif %}>📁 {{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Auto Role</h3>
+                    <p>Pilih role yang akan diberikan secara otomatis saat member baru bergabung.</p>
+                </div>
+                <div class="setting-control">
+                    <select id="auto_role_id" class="sapphire-select">
+                        <option value="">-- Disabled --</option>
+                        {% for role in selected_guild.roles %}
+                        {% if role.name != '@everyone' and not role.is_bot_managed() %}
+                        <option value="{{ role.id }}" {% if auto_role_id == role.id %}selected{% endif %}>@ {{ role.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Bot Power</h3>
+                    <p>Menyalakan atau mematikan bot secara keseluruhan di server ini.</p>
+                </div>
+                <div class="setting-control">
+                    <label class="sapphire-switch">
+                        <input type="checkbox" id="bot_enabled" {% if bot_enabled %}checked{% endif %}>
+                        <span class="sapphire-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Global Slowmode</h3>
+                    <p>Delay chat untuk semua text channel (0 untuk mematikan).</p>
+                </div>
+                <div class="setting-control" style="display: flex; gap: 10px;">
+                    <input type="number" id="slowmode_delay" class="sapphire-input" placeholder="0" value="{{ slowmode_delay }}" style="width: 80px;" min="0">
+                    <select id="slowmode_unit" class="sapphire-select" style="width: auto;">
+                        <option value="1">Detik</option>
+                        <option value="60">Menit</option>
+                        <option value="3600">Jam</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="section-title">Welcome System <span style="font-size: 0.6em; background: linear-gradient(45deg, #FFD700, #FFA500); padding: 2px 8px; border-radius: 12px; color: #1e1e1e; font-weight: bold; margin-left: 10px; vertical-align: middle;">PREMIUM</span></div>
+        <div class="settings-group">
+            
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Welcome System</h3>
+                    <p>Mengaktifkan kartu gambar selamat datang dinamis (Welcome Image Cards).</p>
+                </div>
+                <div class="setting-control">
+                    <label class="sapphire-switch">
+                        <input type="checkbox" id="welcome_enabled" {% if welcome_enabled %}checked{% endif %}>
+                        <span class="sapphire-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Welcome Channel</h3>
+                    <p>Channel tempat pesan dan kartu selamat datang akan dikirim.</p>
+                </div>
+                <div class="setting-control">
+                    <select id="welcome_channel_id" class="sapphire-select">
+                        <option value="">-- Disabled --</option>
+                        {% for channel in selected_guild.text_channels %}
+                        <option value="{{ channel.id }}" {% if welcome_channel_id == channel.id %}selected{% endif %}># {{ channel.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Welcome Message</h3>
+                    <p>Gunakan <code>{user}</code> untuk mention dan <code>{server}</code> untuk nama server.</p>
+                </div>
+                <div class="setting-control">
+                    <textarea id="welcome_message" class="sapphire-input" style="min-height: 80px; resize: vertical;" placeholder="Halo {user}, selamat datang di {server}!">{{ welcome_message or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Custom Background URL</h3>
+                    <p>Link gambar (.jpg/.png) untuk latar belakang kartu welcome.</p>
+                </div>
+                <div class="setting-control">
+                    <input type="text" id="welcome_bg_url" class="sapphire-input" placeholder="https://example.com/bg.png" value="{{ welcome_bg_url or '' }}">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="section-title">Modules</div>
+        <div class="settings-group">
+            
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Auto Moderation</h3>
+                    <p>Mengaktifkan filter kata kasar dan sistem peringatan otomatis.</p>
+                </div>
+                <div class="setting-control">
+                    <label class="sapphire-switch">
+                        <input type="checkbox" id="automod_enabled" {% if automod_enabled %}checked{% endif %}>
+                        <span class="sapphire-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Leveling System</h3>
+                    <p>Memberikan XP ketika member mengirim pesan dan menaikkan level mereka.</p>
+                </div>
+                <div class="setting-control">
+                    <label class="sapphire-switch">
+                        <input type="checkbox" id="leveling_enabled" {% if leveling_enabled %}checked{% endif %}>
+                        <span class="sapphire-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Ticket System</h3>
+                    <p>Mengaktifkan fitur pembuatan tiket untuk support server.</p>
+                </div>
+                <div class="setting-control">
+                    <label class="sapphire-switch">
+                        <input type="checkbox" id="tickets_enabled" {% if tickets_enabled %}checked{% endif %}>
+                        <span class="sapphire-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div class="floating-save" id="floatingSave">
+        <p>Careful - you have unsaved changes!</p>
+        <div class="buttons">
+            <button type="button" class="btn btn-ghost" id="resetBtn">Reset</button>
+            <button type="submit" class="btn btn-success">Save Changes</button>
+        </div>
+    </div>
+</form>
+
+
+
+{% else %}
+<div class="settings-section">
+    <div class="settings-group">
+        <div class="setting-card">
+            <div class="setting-info">
+                <h3>No Server Selected</h3>
+                <p>Please select a server from the dropdown on the left to manage its settings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

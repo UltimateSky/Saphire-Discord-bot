@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Leveling - ProBot{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <i class="fa-solid fa-star" style="font-size: 1.8rem; color: var(--text-primary);"></i>
+        <h1 style="font-size: 1.8rem;">Leveling System</h1>
+    </div>
+    
+    <div>
+        <label class="sapphire-switch" style="margin-bottom: 0;">
+            <input type="checkbox" checked>
+            <span class="sapphire-slider"></span>
+        </label>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="section-title">Leaderboard</div>
+    <div class="settings-group" style="padding: 1.5rem;">
+        
+        <!-- Search Form -->
+        <form action="{{ url_for('leveling') }}" method="GET" style="display: flex; gap: 10px; margin-bottom: 2rem;">
+            {% if selected_guild %}
+            <input type="hidden" name="guild_id" value="{{ selected_guild.id }}">
+            {% endif %}
+            <div style="position: relative; flex: 1;">
+                <i class="fa-solid fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <input type="text" name="search" class="sapphire-input" placeholder="Search by username..." value="{{ search_query }}" style="padding-left: 40px; background: #000000;">
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if search_query %}
+            <a href="{{ url_for('leveling') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="btn btn-ghost">Clear</a>
+            {% endif %}
+        </form>
+
+        <!-- Leaderboard Table -->
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <th style="padding: 1rem 1rem 1rem 0; width: 60px;">Rank</th>
+                        <th style="padding: 1rem;">User</th>
+                        <th style="padding: 1rem;">Level</th>
+                        <th style="padding: 1rem; text-align: right;">Total XP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if leaderboard %}
+                        {% for entry in leaderboard %}
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                            <td style="padding: 1rem 1rem 1rem 0; color: var(--text-muted); font-weight: 600;">
+                                #{{ loop.index }}
+                            </td>
+                            <td style="padding: 1rem; display: flex; align-items: center; gap: 12px; font-weight: 500;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #27272a; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-user" style="font-size: 0.8rem; color: var(--text-muted);"></i>
+                                </div>
+                                {{ entry.name }}
+                            </td>
+                            <td style="padding: 1rem; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--accent-indigo);">
+                                {{ entry.level }}
+                            </td>
+                            <td style="padding: 1rem; text-align: right; color: var(--text-secondary); font-family: 'Outfit', sans-serif;">
+                                {{ entry.xp }} XP
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                                {% if search_query %}
+                                No users found matching "{{ search_query }}".
+                                {% else %}
+                                No leveling data available yet.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 1.5rem; text-align: right; font-size: 0.8rem; color: var(--text-muted);">
+            Showing up to 100 members. Use search to find specific users.
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Login - ProBot Dashboard{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block login_content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h2>Welcome to ProBot</h2>
+        <p>Enter your master password to access the professional dashboard.</p>
+        
+        {% if error %}
+        <div class="alert alert-error" style="margin-bottom: 1.5rem; color: var(--danger-color); font-size: 0.9rem; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="password">Dashboard Password</label>
+                <input type="password" id="password" name="password" required class="sapphire-input" placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                Unlock Dashboard <i class="fa-solid fa-arrow-right-to-bracket" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

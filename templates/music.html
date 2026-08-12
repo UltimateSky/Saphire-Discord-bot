@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Music — ProBot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <i class="fa-solid fa-music"></i>
+    <h1>Music Dashboard</h1>
+</div>
+
+{% if selected_guild %}
+<input type="hidden" id="music_guild_id" value="{{ selected_guild.id }}">
+
+<!-- NOW PLAYING -->
+<div class="settings-section">
+    <div class="section-title">
+        <i class="fa-solid fa-circle-play" style="color: #1DB954; margin-right: 8px;"></i>
+        Now Playing
+        <span id="refresh-badge" style="font-size: 0.6em; background: var(--accent-indigo); padding: 2px 10px; border-radius: 12px; margin-left: 10px; cursor: pointer; vertical-align: middle;" onclick="location.reload()">
+            <i class="fa-solid fa-rotate-right"></i> Refresh
+        </span>
+    </div>
+    <div class="settings-group">
+        {% if now_playing %}
+        <div class="setting-card" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 20px; width: 100%;">
+                {% if now_playing.thumbnail %}
+                <img src="{{ now_playing.thumbnail }}" alt="thumb" style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover; flex-shrink: 0;">
+                {% else %}
+                <div style="width: 80px; height: 80px; border-radius: 12px; background: var(--card-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fa-solid fa-music" style="font-size: 2rem; color: #1DB954;"></i>
+                </div>
+                {% endif %}
+                <div style="flex: 1; min-width: 0;">
+                    <a href="{{ now_playing.url }}" target="_blank" style="font-size: 1.1rem; font-weight: 700; color: #1DB954; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        🎵 {{ now_playing.title }}
+                    </a>
+                    <p style="margin: 4px 0; color: var(--text-muted); font-size: 0.85rem;">
+                        Requested by <strong style="color: var(--text-primary);">{{ now_playing.requester }}</strong>
+                    </p>
+                    <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
+                        <span class="badge-pill" style="background: {% if now_playing.loop == 'off' %}var(--card-border){% elif now_playing.loop == 'single' %}#F59E0B33{% else %}#1DB95433{% endif %}; color: {% if now_playing.loop == 'single' %}#F59E0B{% elif now_playing.loop == 'queue' %}#1DB954{% else %}var(--text-muted){% endif %}; padding: 3px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;">
+                            {% if now_playing.loop == 'off' %}➡️ No Loop{% elif now_playing.loop == 'single' %}🔂 Single{% else %}🔁 Queue{% endif %}
+                        </span>
+                        <span class="badge-pill" style="background: #1DB95422; color: #1DB954; padding: 3px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;">
+                            🔊 {{ now_playing.volume }}%
+                        </span>
+                        {% if now_playing.is_247 %}
+                        <span class="badge-pill" style="background: #6366F133; color: #818CF8; padding: 3px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;">
+                            🌙 24/7 Active
+                        </span>
+                        {% endif %}
+                        <span class="badge-pill" style="background: var(--card-border); color: var(--text-muted); padding: 3px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;">
+                            ⏱ {{ now_playing.duration }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div style="width: 100%;">
+                <div style="background: var(--card-border); border-radius: 999px; height: 6px; width: 100%; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #1DB954, #1ed760); height: 100%; width: {{ now_playing.elapsed_pct }}%; border-radius: 999px; transition: width 0.5s;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.75rem; color: var(--text-muted);">
+                    <span>{{ (now_playing.elapsed // 60)|int }}:{{ '%02d' % (now_playing.elapsed % 60) }}</span>
+                    <span>{{ now_playing.duration }}</span>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="setting-card">
+            <div class="setting-info">
+                <h3>🔇 Nothing Playing</h3>
+                <p>Bot sedang tidak memutar musik. Gunakan <code>/playsong</code> di Discord untuk mulai.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- QUEUE -->
+{% if queue_list %}
+<div class="settings-section">
+    <div class="section-title"><i class="fa-solid fa-list" style="margin-right: 8px;"></i>Queue ({{ queue_list|length }} lagu)</div>
+    <div class="settings-group">
+        {% for i, track in queue_list|enumerate %}
+        <div class="setting-card" style="padding: 12px 20px;">
+            <div class="setting-info" style="flex-direction: row; align-items: center; gap: 16px;">
+                <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-muted); min-width: 28px;">{{ loop.index }}</span>
+                <div>
+                    <a href="{{ track.url }}" target="_blank" style="font-weight: 600; color: var(--text-primary); text-decoration: none;">{{ track.title }}</a>
+                    <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">{{ track.requester }} • {{ track.duration }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- MUSIC LOG -->
+<div class="settings-section">
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span><i class="fa-solid fa-clock-rotate-left" style="margin-right: 8px;"></i>Riwayat Musik</span>
+        <button class="btn btn-danger" onclick="clearLogs()" style="font-size: 0.78rem; padding: 6px 14px;">
+            <i class="fa-solid fa-trash"></i> Clear Logs
+        </button>
+    </div>
+    <div class="settings-group">
+        {% if music_logs %}
+        <!-- Stats Row -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px;">
+            <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #1DB954;">{{ music_logs|length }}</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Total Lagu Diplay</div>
+            </div>
+            <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; text-align: center;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #818CF8;">{{ music_logs|map(attribute='username')|unique|list|length }}</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Unique Users</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div style="margin-bottom: 12px;">
+            <input type="text" id="logSearch" class="sapphire-input" placeholder="🔍 Cari lagu atau username..." oninput="filterLogs()" style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <!-- Log Table -->
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;" id="logTable">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--card-border);">
+                        <th style="padding: 10px 12px; text-align: left; font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">#</th>
+                        <th style="padding: 10px 12px; text-align: left; font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">LAGU</th>
+                        <th style="padding: 10px 12px; text-align: left; font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">DIPLAY OLEH</th>
+                        <th style="padding: 10px 12px; text-align: left; font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">DURASI</th>
+                        <th style="padding: 10px 12px; text-align: left; font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">WAKTU</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in music_logs %}
+                    <tr class="log-row" data-search="{{ log.song_title|lower }} {{ log.username|lower }}" style="border-bottom: 1px solid var(--card-border); transition: background 0.15s;">
+                        <td style="padding: 10px 12px; color: var(--text-muted); font-size: 0.8rem;">{{ loop.index }}</td>
+                        <td style="padding: 10px 12px; max-width: 300px;">
+                            <a href="{{ log.song_url }}" target="_blank" style="color: var(--text-primary); text-decoration: none; font-weight: 500; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;" title="{{ log.song_title }}">
+                                🎵 {{ log.song_title }}
+                            </a>
+                        </td>
+                        <td style="padding: 10px 12px; font-size: 0.85rem; color: var(--text-muted);">{{ log.username }}</td>
+                        <td style="padding: 10px 12px; font-size: 0.85rem; color: var(--text-muted);">{{ log.duration }}</td>
+                        <td style="padding: 10px 12px; font-size: 0.78rem; color: var(--text-muted);">{{ log.played_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="setting-card">
+            <div class="setting-info">
+                <h3>📭 Belum Ada Riwayat</h3>
+                <p>Belum ada lagu yang diplay. Riwayat akan muncul di sini setelah bot memainkan lagu pertama.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% else %}
+<div class="settings-section">
+    <div class="settings-group">
+        <div class="setting-card">
+            <div class="setting-info">
+                <h3>No Server Selected</h3>
+                <p>Pilih server dari dropdown di sebelah kiri.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterLogs() {
+    const q = document.getElementById('logSearch').value.toLowerCase();
+    document.querySelectorAll('.log-row').forEach(row => {
+        const text = row.dataset.search || '';
+        row.style.display = text.includes(q) ? '' : 'none';
+    });
+}
+
+async function clearLogs() {
+    if (!confirm('Hapus semua riwayat musik? Tindakan ini tidak bisa dibatalkan.')) return;
+    const guildId = document.getElementById('music_guild_id').value;
+    const res = await fetch('/api/clear_music_logs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({guild_id: guildId})
+    });
+    const data = await res.json();
+    if (data.success) {
+        showToast('Riwayat musik dihapus!', 'success');
+        setTimeout(() => location.reload(), 1000);
+    } else {
+        showToast('Gagal menghapus riwayat.', 'error');
+    }
+}
+
+function showToast(msg, type) {
+    const existing = document.getElementById('toast-msg');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'toast-msg';
+    el.textContent = msg;
+    Object.assign(el.style, {
+        position: 'fixed', bottom: '24px', right: '24px',
+        background: type === 'success' ? '#1DB954' : '#EF4444',
+        color: '#fff', padding: '12px 24px', borderRadius: '12px',
+        fontWeight: '600', zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        animation: 'slideIn 0.3s ease'
+    });
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+}
+
+// Auto-refresh now playing setiap 30 detik
+setTimeout(() => location.reload(), 30000);
+</script>
+{% endblock %}

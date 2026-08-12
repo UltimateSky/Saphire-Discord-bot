@@ -1,0 +1,9 @@
+*.py
+requirements.txt
+runtime.txt
+venv/
+__pycache__/
+.cache
+.env
+database.db
+Procfile

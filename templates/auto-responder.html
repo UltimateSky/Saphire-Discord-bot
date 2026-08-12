@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Auto Responder - ProBot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <i class="fa-solid fa-reply"></i>
+    <h1>Auto Responder</h1>
+</div>
+
+{% if selected_guild %}
+<div class="settings-section">
+    <div class="section-title">Add Custom Command <span
+            style="font-size: 0.6em; background: linear-gradient(45deg, #FFD700, #FFA500); padding: 2px 8px; border-radius: 12px; color: #1e1e1e; font-weight: bold; margin-left: 10px; vertical-align: middle;">PREMIUM</span>
+    </div>
+    <div class="settings-group">
+        <div class="setting-card" style="display: block;">
+            <p style="margin-bottom: 15px; color: var(--text-secondary);">Buat command kustom agar bot membalas secara
+                otomatis. Anda bisa menggunakan <code>{user}</code> untuk mention.</p>
+            <form id="addCustomCommandForm" style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;">
+                <input type="hidden" id="cc_guild_id" value="{{ selected_guild.id }}">
+                <input type="text" id="cc_trigger" class="sapphire-input" placeholder="Trigger (cth: halo)" required
+                    style="flex: 1; min-width: 200px;">
+                <input type="text" id="cc_response" class="sapphire-input" placeholder="Response (cth: Hai {user}!)"
+                    required style="flex: 2; min-width: 300px;">
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap;"><i
+                        class="fa-solid fa-plus"></i> Add Command</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="section-title">Active Custom Commands</div>
+    <div class="settings-group">
+        <div class="setting-card" style="display: block;">
+            <div id="customCommandsList" style="display: flex; flex-direction: column; gap: 10px;">
+                {% if commands_list %}
+                {% for cmd in commands_list %}
+                <div class="custom-command-item" data-id="{{ cmd[0] }}"
+                    style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div>
+                        <strong style="color: var(--primary);">{{ cmd[1] }}</strong>
+                        <p style="margin: 5px 0 0 0; color: var(--text-secondary); font-size: 0.9em;">{{ cmd[2] }}</p>
+                    </div>
+                    <button type="button" class="btn btn-danger" onclick="removeCustomCommand({{ cmd[0] }})"
+                        style="padding: 8px 15px;"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p id="no-commands-msg" style="color: var(--text-secondary); font-style: italic;">Belum ada custom
+                    command yang diatur.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addCustomCommandForm = document.getElementById('addCustomCommandForm');
+        if (addCustomCommandForm) {
+            addCustomCommandForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const guildId = document.getElementById('cc_guild_id').value;
+                const trigger = document.getElementById('cc_trigger').value.trim();
+                const responseText = document.getElementById('cc_response').value.trim();
+
+                if (!trigger || !responseText) return;
+
+                try {
+                    const res = await fetch('/api/add_custom_command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ guild_id: guildId, trigger: trigger, response: responseText })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        window.location.reload(); // Simple reload to show new command
+                    } else {
+                        alert(result.error || 'Failed to add custom command');
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
+    });
+
+    async function removeCustomCommand(commandId) {
+        if (!confirm('Hapus custom command ini?')) return;
+        try {
+            const res = await fetch('/api/remove_custom_command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command_id: commandId })
+            });
+            const result = await res.json();
+            if (result.success) {
+                const item = document.querySelector(`.custom-command-item[data-id="${commandId}"]`);
+                if (item) item.remove();
+            } else {
+                alert(result.error || 'Failed to remove custom command');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+</script>
+
+{% else %}
+<div class="settings-section">
+    <div class="settings-group">
+        <div class="setting-card">
+            <div class="setting-info">
+                <h3>No Server Selected</h3>
+                <p>Please select a server from the dropdown on the left to manage its settings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: sapphire-discord-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    plan: free
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DASHBOARD_PASSWORD
+        value: admin123
+      - key: DASHBOARD_SECRET
+        generateValue: true
+      - key: PORT
+        value: 5000

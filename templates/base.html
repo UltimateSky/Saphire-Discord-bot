@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Discord Bot Dashboard{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    {% if session.get('logged_in') and not is_login_page %}
+    <!-- Sidebar for logged in pages -->
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-robot"></i>
+            <span>ProBot</span>
+        </div>
+        
+        <div class="server-selector">
+            <div class="server-dropdown-btn" id="serverDropdownBtn">
+                <div style="display: flex; align-items: center;">
+                    {% if selected_guild and selected_guild.icon %}
+                    <img src="{{ selected_guild.icon.url }}" alt="" style="width: 28px; height: 28px; border-radius: 8px; margin-right: 12px; object-fit: cover;">
+                    {% else %}
+                    <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="" style="width: 28px; height: 28px; border-radius: 8px; margin-right: 12px; object-fit: cover;">
+                    {% endif %}
+                    <span>{{ selected_guild.name if selected_guild else 'Select Server' }}</span>
+                </div>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            
+            <div class="server-dropdown-menu" id="serverDropdownMenu">
+                <a href="{{ url_for('home') }}" class="server-dropdown-item" style="justify-content: center; color: var(--accent-indigo);">
+                    <i class="fa-solid fa-grid-2" style="margin-right: 8px;"></i> View All Servers
+                </a>
+                {% if guilds %}
+                    {% for g in guilds %}
+                    <a href="{{ url_for('dashboard') }}?guild_id={{ g.id }}" class="server-dropdown-item">
+                        {% if g.icon %}
+                        <img src="{{ g.icon.url }}" alt="" style="width: 24px; height: 24px; border-radius: 6px; margin-right: 12px; object-fit: cover;">
+                        {% else %}
+                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="" style="width: 24px; height: 24px; border-radius: 6px; margin-right: 12px; object-fit: cover;">
+                        {% endif %}
+                        {{ g.name }}
+                    </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <a href="{{ url_for('home') }}" class="nav-item {% if request.endpoint == 'home' %}active{% endif %}">
+                <i class="fa-solid fa-house"></i> Home
+            </a>
+            <a href="{{ url_for('dashboard') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gear"></i> General Settings
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item" style="color: var(--danger-color); margin-top: auto;">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Modules</div>
+            <a href="{{ url_for('auto_moderation') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="nav-item {% if request.endpoint == 'auto_moderation' %}active{% endif %}">
+                <i class="fa-solid fa-shield-halved"></i> Auto Moderation
+            </a>
+            <a href="{{ url_for('auto_responder') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="nav-item {% if request.endpoint == 'auto_responder' %}active{% endif %}">
+                <i class="fa-solid fa-reply"></i> Auto Responder
+            </a>
+            <a href="{{ url_for('leveling') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="nav-item {% if request.endpoint == 'leveling' %}active{% endif %}">
+                <i class="fa-solid fa-star"></i> Leveling
+            </a>
+            <a href="{{ url_for('tickets') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="nav-item {% if request.endpoint in ['tickets', 'view_transcript'] %}active{% endif %}">
+                <i class="fa-solid fa-ticket"></i> Tickets
+            </a>
+            <a href="{{ url_for('music') }}?guild_id={{ selected_guild.id if selected_guild else '' }}" class="nav-item {% if request.endpoint == 'music' %}active{% endif %}">
+                <i class="fa-solid fa-music"></i> Music
+            </a>
+        </div>
+    </div>
+    
+    <div class="main-wrapper">
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+        <!-- For Login Page -->
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
