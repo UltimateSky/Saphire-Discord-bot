@@ -337,6 +337,10 @@ async def api_save_config():
             guild_id = int(guild_id)
             
             # Text inputs / Selects
+            if "prefix" in data:
+                val = data.get("prefix")
+                await database.set_config(guild_id, "prefix", str(val) if val else "!")
+
             if "log_channel_id" in data:
                 val = data.get("log_channel_id")
                 await database.set_config(guild_id, "log_channel_id", int(val) if val else None)
@@ -449,7 +453,7 @@ async def api_guild_data():
     
     # 1. Config
     config_keys = [
-        'log_channel_id','ticket_category_id','auto_role_id',
+        'prefix','log_channel_id','ticket_category_id','auto_role_id',
         'automod_enabled','anti_link_enabled','anti_spam_enabled','anti_toxic_enabled',
         'leveling_enabled','tickets_enabled','bot_enabled','slowmode_delay',
         'welcome_channel_id','welcome_message','welcome_bg_url','welcome_enabled'

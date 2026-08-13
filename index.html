@@ -1017,7 +1017,7 @@
                             <p>Enable or disable Sapphire responses on this server</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked onchange="triggerChange()">
+                            <input type="checkbox" id="chkBotMaster" checked onchange="triggerChange()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -1033,22 +1033,18 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Command Prefix</label>
-                            <input type="text" class="sapphire-input" value="!" oninput="triggerChange()">
+                            <input type="text" id="inputPrefix" class="sapphire-input" value="!" oninput="triggerChange()">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Audit Log Channel</label>
                             <select class="sapphire-input" id="selectLogChannel" onchange="triggerChange()">
-                                <option># 📝-mod-logs</option>
-                                <option># 🛡️-security</option>
-                                <option># 🤖-bot-commands</option>
+                                <option value="">Pilih Channel</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Auto Role for New Members</label>
                             <select class="sapphire-input" id="selectAutoRole" onchange="triggerChange()">
-                                <option>@Member</option>
-                                <option>@Verified</option>
-                                <option>@Gamer</option>
+                                <option value="">Pilih Role</option>
                             </select>
                         </div>
                     </div>
@@ -1061,14 +1057,14 @@
                             <p>Send custom rich cards when a user joins the server</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked onchange="triggerChange()">
+                            <input type="checkbox" id="chkWelcome" checked onchange="triggerChange()">
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="form-row">
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label class="form-label">Custom Welcome Message</label>
-                            <textarea class="sapphire-input" rows="3" oninput="triggerChange()">Selamat datang {user} di server {server}! Jangan lupa baca #rules dan ambil role di #roles ya!</textarea>
+                            <textarea class="sapphire-input" id="inputWelcomeMessage" rows="3" oninput="triggerChange()">Selamat datang {user} di server {server}! Jangan lupa baca #rules dan ambil role di #roles ya!</textarea>
                         </div>
                     </div>
                 </div>
@@ -1090,7 +1086,7 @@
                             <p>Automatically timeout members sending >5 messages within 3 seconds</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked onchange="triggerChange()">
+                            <input type="checkbox" id="chkAntiSpam" checked onchange="triggerChange()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -1103,7 +1099,7 @@
                             <p>Instantly delete unauthorized Discord invite links from non-admins</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked onchange="triggerChange()">
+                            <input type="checkbox" id="chkAntiLink" checked onchange="triggerChange()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -1359,7 +1355,12 @@
         let liveGuildIdx = 0;
 
         // Backend API Bridge & Live Sync Logic
-        let backendUrl = localStorage.getItem('sapphire_backend_url') || 'https://web-production-f87ac.up.railway.app';
+        let storedUrl = localStorage.getItem('sapphire_backend_url');
+        if (!storedUrl || storedUrl.includes('localhost') || storedUrl.includes('127.0.0.1')) {
+            storedUrl = 'https://web-production-f87ac.up.railway.app';
+            localStorage.setItem('sapphire_backend_url', storedUrl);
+        }
+        let backendUrl = storedUrl;
         let isBackendConnected = false;
         let activeGuildId = null;
 
@@ -1376,14 +1377,16 @@
             // Populate text channels dropdown selector
             const logSelect = document.getElementById('selectLogChannel');
             if (logSelect && guild.text_channels) {
-                logSelect.innerHTML = guild.text_channels.map(c => `<option value="${c.id}"># ${c.name}</option>`).join('');
+                logSelect.innerHTML = '<option value="">Pilih Channel Logs</option>' + guild.text_channels.map(c => `<option value="${c.id}"># ${c.name}</option>`).join('');
             }
 
             // Populate roles dropdown selector
             const roleSelect = document.getElementById('selectAutoRole');
             if (roleSelect && guild.roles) {
-                roleSelect.innerHTML = guild.roles.map(r => `<option value="${r.id}">@${r.name}</option>`).join('');
+                roleSelect.innerHTML = '<option value="">Pilih Auto Role</option>' + guild.roles.map(r => `<option value="${r.id}">@${r.name}</option>`).join('');
             }
+
+            fetchGuildLiveData();
         }
 
         document.getElementById('btnServerSwitch').addEventListener('click', () => {
@@ -1580,6 +1583,43 @@
                     }
                 }
 
+                // 5. Update Config Inputs
+                if (data.config) {
+                    const c = data.config;
+                    const chkBot = document.getElementById('chkBotMaster');
+                    if (chkBot && c.bot_enabled !== null && c.bot_enabled !== undefined) {
+                        chkBot.checked = c.bot_enabled == 1;
+                    }
+                    const chkWel = document.getElementById('chkWelcome');
+                    if (chkWel && c.welcome_enabled !== null && c.welcome_enabled !== undefined) {
+                        chkWel.checked = c.welcome_enabled == 1;
+                    }
+                    const txtWel = document.getElementById('inputWelcomeMessage');
+                    if (txtWel && c.welcome_message !== null && c.welcome_message !== undefined) {
+                        txtWel.value = c.welcome_message;
+                    }
+                    const txtPfx = document.getElementById('inputPrefix');
+                    if (txtPfx && c.prefix !== null && c.prefix !== undefined) {
+                        txtPfx.value = c.prefix;
+                    }
+                    const chkSpam = document.getElementById('chkAntiSpam');
+                    if (chkSpam && c.anti_spam_enabled !== null && c.anti_spam_enabled !== undefined) {
+                        chkSpam.checked = c.anti_spam_enabled == 1;
+                    }
+                    const chkLink = document.getElementById('chkAntiLink');
+                    if (chkLink && c.anti_link_enabled !== null && c.anti_link_enabled !== undefined) {
+                        chkLink.checked = c.anti_link_enabled == 1;
+                    }
+                    const selLog = document.getElementById('selectLogChannel');
+                    if (selLog && c.log_channel_id) {
+                        selLog.value = c.log_channel_id;
+                    }
+                    const selRole = document.getElementById('selectAutoRole');
+                    if (selRole && c.auto_role_id) {
+                        selRole.value = c.auto_role_id;
+                    }
+                }
+
             } catch (err) {
                 console.error("Error fetching live guild data:", err);
             }
@@ -1641,6 +1681,14 @@
                 try {
                     const payload = {
                         guild_id: activeGuildId,
+                        bot_enabled: document.getElementById('chkBotMaster')?.checked ? 1 : 0,
+                        prefix: document.getElementById('inputPrefix')?.value.trim() || '!',
+                        log_channel_id: document.getElementById('selectLogChannel')?.value || null,
+                        auto_role_id: document.getElementById('selectAutoRole')?.value || null,
+                        welcome_enabled: document.getElementById('chkWelcome')?.checked ? 1 : 0,
+                        welcome_message: document.getElementById('inputWelcomeMessage')?.value.trim() || '',
+                        anti_spam_enabled: document.getElementById('chkAntiSpam')?.checked ? 1 : 0,
+                        anti_link_enabled: document.getElementById('chkAntiLink')?.checked ? 1 : 0,
                         automod_enabled: 1,
                         leveling_enabled: 1,
                         tickets_enabled: 1
