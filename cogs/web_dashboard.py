@@ -438,6 +438,22 @@ async def api_guilds():
         })
     return jsonify({"guilds": guilds_list})
 
+_web_server_task = None
+
+async def start_web_server(bot=None):
+    global bot_instance, _web_server_task
+    if bot:
+        bot_instance = bot
+    if _web_server_task is not None and not _web_server_task.done():
+        return _web_server_task
+    port = int(os.getenv("PORT", 5000))
+    host = "0.0.0.0"
+    config = hypercorn.config.Config()
+    config.bind = [f"{host}:{port}"]
+    print(f"Web Dashboard starting on http://{host}:{port}")
+    _web_server_task = asyncio.create_task(hypercorn.asyncio.serve(app, config))
+    return _web_server_task
+
 class WebDashboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -445,16 +461,12 @@ class WebDashboard(commands.Cog):
         bot_instance = bot
         
     async def cog_load(self):
-        # Start hypercorn — Railway pakai PORT env var, lokal default 5000
-        port = int(os.getenv("PORT", 5000))
-        host = "0.0.0.0"
-        config = hypercorn.config.Config()
-        config.bind = [f"{host}:{port}"]
-        self.server_task = asyncio.create_task(hypercorn.asyncio.serve(app, config))
-        print(f"Web Dashboard starting on http://{host}:{port}")
+        await start_web_server(self.bot)
         
     async def cog_unload(self):
-        self.server_task.cancel()
+        global _web_server_task
+        if _web_server_task and not _web_server_task.done():
+            _web_server_task.cancel()
 
 async def setup(bot):
     await bot.add_cog(WebDashboard(bot))

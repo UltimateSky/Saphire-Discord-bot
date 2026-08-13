@@ -80,8 +80,51 @@ async def on_ready():
     print('------')
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="over the server"))
 
-if __name__ == '__main__':
-    if TOKEN == 'your_bot_token_here' or not TOKEN:
-        print("ERROR: Please put your real bot token in the .env file!")
+import asyncio
+from cogs.web_dashboard import start_web_server
+
+async def main():
+    await database.init_db()
+    print("Database initialized.")
+    
+    initial_extensions = [
+        'cogs.logger',
+        'cogs.moderation',
+        'cogs.utility',
+        'cogs.leveling',
+        'cogs.web_dashboard',
+        'cogs.welcome',
+        'cogs.auto_responder',
+        'cogs.music'
+    ]
+    for ext in initial_extensions:
+        try:
+            await bot.load_extension(ext)
+            print(f"Loaded extension: {ext}")
+        except Exception as e:
+            import traceback
+            print(f"Failed to load extension {ext}: {e}")
+            traceback.print_exc()
+
+    # Start Web Dashboard server task early so Railway proxy health check passes
+    web_task = await start_web_server(bot)
+
+    token = os.getenv('DISCORD_TOKEN')
+    if not token or token == 'your_bot_token_here':
+        print("WARNING: DISCORD_TOKEN is missing or default. Bot will stay offline, but Web Dashboard remains active.")
+        await web_task
     else:
-        bot.run(TOKEN)
+        try:
+            print("Connecting to Discord...")
+            await bot.start(token)
+        except Exception as e:
+            print(f"ERROR starting Discord Bot: {e}")
+            print("Web Dashboard will remain active.")
+            await web_task
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Bot stopped by user.")
+
