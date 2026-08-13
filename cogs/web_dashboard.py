@@ -447,7 +447,7 @@ class WebDashboard(commands.Cog):
     async def cog_load(self):
         # Start hypercorn — Railway pakai PORT env var, lokal default 5000
         port = int(os.getenv("PORT", 5000))
-        host = "0.0.0.0" if os.getenv("DATABASE_URL") else "127.0.0.1"
+        host = "0.0.0.0"
         config = hypercorn.config.Config()
         config.bind = [f"{host}:{port}"]
         self.server_task = asyncio.create_task(hypercorn.asyncio.serve(app, config))
