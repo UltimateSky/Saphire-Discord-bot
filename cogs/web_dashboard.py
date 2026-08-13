@@ -400,13 +400,13 @@ async def api_save_config():
                 guild = bot_instance.get_guild(guild_id)
                 if guild:
                     for channel in guild.text_channels:
-                        try:
-                            if channel.slowmode_delay != delay:
-                                await channel.edit(slowmode_delay=delay)
-                        except discord.Forbidden:
-                            pass
-                        except Exception as e:
-                            print(f"Error setting slowmode for {channel.name}: {e}")
+                            try:
+                                if channel.slowmode_delay != delay:
+                                    await channel.edit(slowmode_delay=delay)
+                                except discord.Forbidden:
+                                pass
+                            except Exception as e:
+                                print(f"Error setting slowmode for {channel.name}: {e}")
                 
 @app.route("/api/bot_status")
 async def api_bot_status():
