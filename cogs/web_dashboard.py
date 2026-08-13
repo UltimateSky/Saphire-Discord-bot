@@ -440,7 +440,160 @@ async def api_guilds():
             "categories": [{"id": str(cat.id), "name": cat.name} for cat in g.categories],
             "roles": [{"id": str(r.id), "name": r.name} for r in g.roles if r.name != '@everyone' and not r.is_bot_managed()]
         })
-    return jsonify({"guilds": guilds_list})
+@app.route("/api/guild_data")
+async def api_guild_data():
+    guild_id_raw = request.args.get("guild_id")
+    if not guild_id_raw or not guild_id_raw.isdigit():
+        return jsonify({"error": "Invalid guild_id"}), 400
+    guild_id = int(guild_id_raw)
+    
+    # 1. Config
+    config_keys = [
+        'log_channel_id','ticket_category_id','auto_role_id',
+        'automod_enabled','anti_link_enabled','anti_spam_enabled','anti_toxic_enabled',
+        'leveling_enabled','tickets_enabled','bot_enabled','slowmode_delay',
+        'welcome_channel_id','welcome_message','welcome_bg_url','welcome_enabled'
+    ]
+    config_data = {}
+    for k in config_keys:
+        val = await database.get_config(guild_id, k)
+        config_data[k] = val
+        
+    # 2. Bad Words
+    bad_words = await database.get_bad_words(guild_id)
+    
+    # 3. Custom Commands (Auto Responder)
+    custom_cmds_raw = await database.get_custom_commands(guild_id)
+    custom_commands = [{"id": r[0], "trigger": r[1], "response": r[2]} for r in custom_cmds_raw]
+    
+    # 4. Leaderboard
+    lb_raw = await database.get_leaderboard(guild_id, limit=20)
+    leaderboard = []
+    guild_obj = bot_instance.get_guild(guild_id) if bot_instance else None
+    for r in lb_raw:
+        u_id, u_xp, u_lvl = r[0], r[1], r[2]
+        user_name = f"User#{u_id % 9000 + 1000}"
+        if guild_obj:
+            mem = guild_obj.get_member(u_id)
+            if mem:
+                user_name = str(mem)
+        leaderboard.append({
+            "user_id": str(u_id),
+            "username": user_name,
+            "xp": u_xp,
+            "level": u_lvl
+        })
+        
+    # 5. Transcripts
+    ts_raw = await database.get_transcripts(guild_id)
+    transcripts = []
+    for r in ts_raw[:10]:
+        t_id, opened_by, ticket_name, created_at = r[0], r[1], r[2], str(r[3])
+        opener_name = f"User#{opened_by}"
+        if guild_obj:
+            mem = guild_obj.get_member(opened_by)
+            if mem: opener_name = str(mem)
+        transcripts.append({
+            "id": t_id,
+            "opened_by_id": str(opened_by),
+            "opened_by_name": opener_name,
+            "ticket_name": ticket_name,
+            "created_at": created_at
+        })
+
+    # 6. Music State
+    music_info = {"is_playing": False, "current": None, "queue": [], "volume": 50, "loop_mode": "off"}
+    try:
+        from .music import get_state
+        state = get_state(guild_id)
+        music_info["volume"] = int(state.volume * 100)
+        music_info["loop_mode"] = state.loop_mode
+        music_info["is_playing"] = bool(state.voice_client and (state.voice_client.is_playing() or state.voice_client.is_paused()))
+        if state.current:
+            music_info["current"] = {
+                "title": state.current.title,
+                "duration": state.current.duration or 0,
+                "elapsed": state.get_elapsed(),
+                "requester": str(state.current.requester) if state.current.requester else "Unknown",
+                "thumbnail": state.current.thumbnail,
+                "webpage_url": state.current.webpage_url
+            }
+        music_info["queue"] = [
+            {
+                "title": t.title,
+                "duration": t.duration or 0,
+                "requester": str(t.requester) if t.requester else "Unknown",
+                "webpage_url": t.webpage_url
+            } for t in state.queue[:10]
+        ]
+    except Exception as e:
+        print(f"[MusicData Error] {e}")
+
+    return jsonify({
+        "guild_id": str(guild_id),
+        "config": config_data,
+        "bad_words": bad_words,
+        "custom_commands": custom_commands,
+        "leaderboard": leaderboard,
+        "transcripts": transcripts,
+        "music": music_info
+    })
+
+@app.route("/api/music_control", methods=["POST"])
+async def api_music_control():
+    data = await request.json or {}
+    guild_id = data.get("guild_id")
+    action = data.get("action")
+    if not guild_id or not action:
+        return jsonify({"error": "Missing parameters"}), 400
+    try:
+        guild_id = int(guild_id)
+        from .music import get_state
+        state = get_state(guild_id)
+        if action == "pause":
+            if state.voice_client and state.voice_client.is_playing():
+                state.voice_client.pause()
+        elif action == "resume":
+            if state.voice_client and state.voice_client.is_paused():
+                state.voice_client.resume()
+        elif action == "skip":
+            if state.voice_client and (state.voice_client.is_playing() or state.voice_client.is_paused()):
+                state.voice_client.stop()
+        elif action == "stop":
+            state.clear()
+            if state.voice_client:
+                state.voice_client.stop()
+                await state.voice_client.disconnect()
+                state.voice_client = None
+        elif action == "volume":
+            vol = int(data.get("value", 50))
+            state.volume = max(0, min(100, vol)) / 100.0
+            if state.voice_client and state.voice_client.source:
+                try: state.voice_client.source.volume = state.volume
+                except: pass
+        elif action == "loop":
+            modes = ["off", "single", "queue"]
+            idx = modes.index(state.loop_mode) if state.loop_mode in modes else 0
+            state.loop_mode = modes[(idx + 1) % 3]
+        return jsonify({"success": True, "action": action, "loop_mode": state.loop_mode, "volume": int(state.volume*100)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/get_transcript_detail")
+async def api_transcript_detail():
+    t_id = request.args.get("id")
+    if not t_id or not t_id.isdigit():
+        return jsonify({"error": "Invalid transcript id"}), 400
+    data = await database.get_transcript_by_id(int(t_id))
+    if not data:
+        return jsonify({"error": "Transcript not found"}), 404
+    return jsonify({
+        "guild_id": str(data[0]),
+        "opened_by_id": str(data[1]),
+        "ticket_name": data[2],
+        "content": data[3],
+        "created_at": str(data[4])
+    })
 
 _web_server_task = None
 

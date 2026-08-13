@@ -1189,34 +1189,13 @@
                                 <th>Role Tier</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="leaderboardBody">
                             <tr>
                                 <td><span class="rank-badge rank-1">1</span></td>
                                 <td><strong>Ferry#0001</strong></td>
                                 <td><span style="color: #F59E0B; font-weight: 700;">Level 48</span></td>
                                 <td>142,500 XP</td>
                                 <td><span style="background: rgba(245,158,11,0.15); color: #F59E0B; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">🌟 Legend</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="rank-badge rank-2">2</span></td>
-                                <td><strong>AlexCyber#1337</strong></td>
-                                <td><span style="color: #94A3B8; font-weight: 700;">Level 42</span></td>
-                                <td>118,200 XP</td>
-                                <td><span style="background: rgba(148,163,184,0.15); color: #94A3B8; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">💎 Diamond</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="rank-badge rank-3">3</span></td>
-                                <td><strong>Kenshi_Rider#9999</strong></td>
-                                <td><span style="color: #B45309; font-weight: 700;">Level 38</span></td>
-                                <td>95,400 XP</td>
-                                <td><span style="background: rgba(180,83,9,0.15); color: #FBBF24; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">🥇 Gold VIP</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="rank-badge" style="color: var(--text-muted);">4</span></td>
-                                <td><strong>Sarah_Dev#4040</strong></td>
-                                <td>Level 31</td>
-                                <td>68,100 XP</td>
-                                <td><span style="background: rgba(255,255,255,0.05); color: var(--text-secondary); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem;">Elite</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1298,7 +1277,7 @@
                             <p>3 lagu menunggu untuk diputar di voice channel <strong>🔊 General Voice</strong></p>
                         </div>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;" id="queueList">
                         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span style="color: var(--text-muted); font-weight: 700;">1</span>
@@ -1492,6 +1471,153 @@
             const current = liveGuilds[liveGuildIdx];
             applyGuildDetails(current);
             showToast(`Sinkronisasi dengan server Discord: ${current.name}`, 'success');
+            
+            // Start live real-time polling loop
+            fetchGuildLiveData();
+            if (livePollInterval) clearInterval(livePollInterval);
+            livePollInterval = setInterval(fetchGuildLiveData, 3000);
+        }
+
+        let livePollInterval = null;
+
+        async function fetchGuildLiveData() {
+            if (!isBackendConnected || !activeGuildId) return;
+            try {
+                const res = await fetch(`${backendUrl}/api/guild_data?guild_id=${activeGuildId}`, { mode: 'cors' });
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                // 1. Update Leaderboard
+                if (data.leaderboard && data.leaderboard.length > 0) {
+                    const lbBody = document.getElementById('leaderboardBody');
+                    if (lbBody) {
+                        lbBody.innerHTML = data.leaderboard.map((item, idx) => {
+                            let badgeClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
+                            let tierLabel = idx === 0 ? '🌟 Legend' : idx === 1 ? '💎 Diamond' : idx === 2 ? '🥇 Gold VIP' : 'Elite';
+                            let tierStyle = idx === 0 ? 'background: rgba(245,158,11,0.15); color: #F59E0B;' : idx === 1 ? 'background: rgba(148,163,184,0.15); color: #94A3B8;' : idx === 2 ? 'background: rgba(180,83,9,0.15); color: #FBBF24;' : 'background: rgba(255,255,255,0.05); color: var(--text-secondary);';
+                            return `
+                                <tr>
+                                    <td><span class="rank-badge ${badgeClass}">${idx + 1}</span></td>
+                                    <td><strong>${item.username}</strong></td>
+                                    <td><span style="color: #F59E0B; font-weight: 700;">Level ${item.level}</span></td>
+                                    <td>${Number(item.xp).toLocaleString()} XP</td>
+                                    <td><span style="${tierStyle} padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">${tierLabel}</span></td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+
+                // 2. Update Bad Words
+                if (data.bad_words && data.bad_words.length > 0) {
+                    const container = document.getElementById('badWordsContainer');
+                    if (container) {
+                        container.innerHTML = data.bad_words.map(w => `
+                            <span class="word-tag" data-word="${w}">${w} <button onclick="removeBadWord(this)"><i class="fa-solid fa-xmark"></i></button></span>
+                        `).join('');
+                    }
+                }
+
+                // 3. Update Auto Responder
+                if (data.custom_commands && data.custom_commands.length > 0) {
+                    const list = document.getElementById('arList');
+                    if (list) {
+                        list.innerHTML = data.custom_commands.map(cmd => `
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div>
+                                    <span style="font-family: 'JetBrains Mono'; color: #06B6D4; font-weight: 700;">${cmd.trigger}</span>
+                                    <div style="color: var(--text-secondary); font-size: 0.82rem; margin-top: 2px;">${cmd.response}</div>
+                                </div>
+                                <button class="btn-reset" style="color: #F43F5E;" onclick="deleteCustomCommand(${cmd.id}, this)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // 4. Update Music Player State
+                if (data.music) {
+                    const m = data.music;
+                    const titleEl = document.getElementById('playerTitle');
+                    const fillEl = document.getElementById('playerFill');
+                    const timeEl = document.getElementById('playerCurrent');
+                    const playBtn = document.getElementById('btnPlayPause');
+                    const queueList = document.getElementById('queueList');
+
+                    if (m.current) {
+                        titleEl.textContent = m.current.title;
+                        let pct = m.current.duration > 0 ? (m.current.elapsed / m.current.duration) * 100 : 0;
+                        fillEl.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+                        let curM = Math.floor(m.current.elapsed / 60);
+                        let curS = Math.floor(m.current.elapsed % 60).toString().padStart(2, '0');
+                        timeEl.textContent = `${curM}:${curS}`;
+                    } else {
+                        titleEl.textContent = "Tidak ada lagu yang sedang diputar";
+                        fillEl.style.width = '0%';
+                        timeEl.textContent = "0:00";
+                    }
+
+                    if (playBtn) {
+                        playBtn.innerHTML = m.is_playing ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+                    }
+
+                    if (queueList && m.queue) {
+                        if (m.queue.length === 0) {
+                            queueList.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; padding: 8px;">Antrean lagu kosong.</div>`;
+                        } else {
+                            queueList.innerHTML = m.queue.map((q, idx) => `
+                                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="color: var(--text-muted); font-weight: 700;">${idx + 1}</span>
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.88rem;">${q.title}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">Req by ${q.requester}</div>
+                                        </div>
+                                    </div>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-brands fa-youtube" style="color:#f43f5e;"></i> Audio</span>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                }
+
+            } catch (err) {
+                console.error("Error fetching live guild data:", err);
+            }
+        }
+
+        async function sendMusicControl(action, value = null) {
+            if (!isBackendConnected || !activeGuildId) {
+                showToast("Backend belum terhubung!", "error");
+                return;
+            }
+            try {
+                const res = await fetch(`${backendUrl}/api/music_control`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guild_id: activeGuildId, action: action, value: value })
+                });
+                if (res.ok) {
+                    showToast(`Kontrol Musik [${action.toUpperCase()}] Terkirim!`, 'success');
+                    setTimeout(fetchGuildLiveData, 500);
+                }
+            } catch (e) {
+                showToast("Gagal mengirim perintah musik", "error");
+            }
+        }
+
+        async function deleteCustomCommand(cmdId, btn) {
+            if (btn && btn.parentElement) btn.parentElement.remove();
+            if (isBackendConnected) {
+                try {
+                    await fetch(`${backendUrl}/api/delete_custom_command`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command_id: cmdId })
+                    });
+                    showToast("Trigger responder berhasil dihapus!");
+                    setTimeout(fetchGuildLiveData, 500);
+                } catch (e) { console.error(e); }
+            }
         }
 
         // Check backend on start
@@ -1526,6 +1652,7 @@
                     });
                     if (res.ok) {
                         showToast('Pengaturan berhasil disimpan ke Database Backend!', 'success');
+                        setTimeout(fetchGuildLiveData, 500);
                         return;
                     }
                 } catch (err) {
@@ -1557,6 +1684,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ guild_id: activeGuildId, word: word })
                     });
+                    setTimeout(fetchGuildLiveData, 500);
                 } catch (e) {
                     console.error(e);
                 }
@@ -1578,6 +1706,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ guild_id: activeGuildId, word: word })
                     });
+                    setTimeout(fetchGuildLiveData, 500);
                 } catch (e) {
                     console.error(e);
                 }
@@ -1595,17 +1724,6 @@
                 return;
             }
 
-            const list = document.getElementById('arList');
-            const item = document.createElement('div');
-            item.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;";
-            item.innerHTML = `
-                <div>
-                    <span style="font-family: 'JetBrains Mono'; color: #06B6D4; font-weight: 700;">${tr}</span>
-                    <div style="color: var(--text-secondary); font-size: 0.82rem; margin-top: 2px;">${re}</div>
-                </div>
-                <button class="btn-reset" style="color: #F43F5E;" onclick="this.parentElement.remove(); showToast('Responder dihapus!')"><i class="fa-solid fa-trash"></i></button>
-            `;
-            list.appendChild(item);
             document.getElementById('arTrigger').value = '';
             document.getElementById('arReply').value = '';
             
@@ -1616,6 +1734,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ guild_id: activeGuildId, trigger: tr, response: re })
                     });
+                    setTimeout(fetchGuildLiveData, 500);
                 } catch (e) {
                     console.error(e);
                 }
@@ -1625,12 +1744,10 @@
         }
 
         // Music Player Toggle
-        let isPlaying = true;
         function togglePlayMusic() {
-            isPlaying = !isPlaying;
             const btn = document.getElementById('btnPlayPause');
-            btn.innerHTML = isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
-            showToast(isPlaying ? 'Melanjutkan pemutaran musik' : 'Musik di-pause');
+            const isPausing = btn.innerHTML.includes('pause');
+            sendMusicControl(isPausing ? 'pause' : 'resume');
         }
 
         function seekTrack(e) {
