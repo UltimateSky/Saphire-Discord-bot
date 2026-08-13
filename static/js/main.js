@@ -1,5 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
     
+    // Mobile Sidebar Toggle
+    const btnSidebarToggle = document.getElementById('btnSidebarToggle');
+    const mainSidebar = document.getElementById('mainSidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (btnSidebarToggle && mainSidebar && sidebarOverlay) {
+        btnSidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mainSidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            mainSidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                mainSidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
+            });
+        });
+    }
+
     // Server Dropdown Toggle
     const serverDropdownBtn = document.getElementById('serverDropdownBtn');
     const serverDropdownMenu = document.getElementById('serverDropdownMenu');

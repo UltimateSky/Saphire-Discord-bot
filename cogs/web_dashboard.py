@@ -14,6 +14,13 @@ DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "admin123")
 # We need a reference to the bot inside the Quart app
 bot_instance = None
 
+@app.after_request
+async def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    return response
+
 @app.route("/")
 async def home():
     if not session.get("logged_in"):
@@ -401,10 +408,35 @@ async def api_save_config():
                         except Exception as e:
                             print(f"Error setting slowmode for {channel.name}: {e}")
                 
-            return jsonify({"success": True})
-        except ValueError:
-            return jsonify({"error": "Invalid format"}), 400
-    return jsonify({"error": "Invalid data"}), 400
+@app.route("/api/bot_status")
+async def api_bot_status():
+    if not bot_instance:
+        return jsonify({"status": "offline", "ping": 0, "guilds": 0, "users": 0})
+    return jsonify({
+        "status": "online",
+        "bot_name": str(bot_instance.user),
+        "bot_id": bot_instance.user.id if bot_instance.user else None,
+        "ping": round(bot_instance.latency * 1000, 2) if bot_instance.latency else 0,
+        "guilds_count": len(bot_instance.guilds),
+        "users_count": len(bot_instance.users),
+    })
+
+@app.route("/api/guilds")
+async def api_guilds():
+    if not bot_instance:
+        return jsonify({"guilds": []})
+    guilds_list = []
+    for g in bot_instance.guilds:
+        guilds_list.append({
+            "id": str(g.id),
+            "name": g.name,
+            "member_count": g.member_count,
+            "icon_url": g.icon.url if g.icon else None,
+            "text_channels": [{"id": str(c.id), "name": c.name} for c in g.text_channels],
+            "categories": [{"id": str(cat.id), "name": cat.name} for cat in g.categories],
+            "roles": [{"id": str(r.id), "name": r.name} for r in g.roles if r.name != '@everyone' and not r.is_bot_managed()]
+        })
+    return jsonify({"guilds": guilds_list})
 
 class WebDashboard(commands.Cog):
     def __init__(self, bot):

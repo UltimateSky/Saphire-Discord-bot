@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sapphire Bot — Advanced Discord Web Dashboard</title>
+    <meta name="description" content="Manage your Discord server with Sapphire Bot: Automod, Leveling, Web Music Player, and Ticket Transcripts.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        /* Mobile-First Refined Dashboard Enhancements */
+        :root {
+            --bg-base: #0B0E14;
+            --bg-sidebar: rgba(14, 18, 27, 0.95);
+            --bg-card: rgba(22, 28, 42, 0.7);
+            --bg-card-hover: rgba(30, 38, 56, 0.85);
+            --accent-primary: #5865F2;
+            --accent-glow: rgba(88, 101, 242, 0.35);
+            --accent-emerald: #10B981;
+            --accent-amber: #F59E0B;
+            --accent-rose: #F43F5E;
+            --accent-cyan: #06B6D4;
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(88, 101, 242, 0.4);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(88, 101, 242, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        .dash-navbar {
+            height: 64px;
+            background: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #5865F2, #06B6D4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-name span {
+            color: #5865F2;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--accent-emerald);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-emerald);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .server-switcher-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .server-switcher-btn:hover {
+            border-color: var(--border-highlight);
+            background: rgba(88, 101, 242, 0.15);
+        }
+
+        .user-profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            padding: 4px 12px 4px 4px;
+            border-radius: 30px;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #F43F5E, #FB923C);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .user-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Layout Main */
+        .dash-container {
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* Sidebar */
+        .dash-sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-glass);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 14px;
+            gap: 6px;
+            flex-shrink: 0;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 90;
+        }
+
+        .sidebar-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 12px 4px;
+            margin-top: 6px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .nav-btn i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(88, 101, 242, 0.25), rgba(6, 182, 212, 0.15));
+            border-color: var(--border-highlight);
+            box-shadow: 0 4px 15px rgba(88, 101, 242, 0.15);
+        }
+
+        .nav-btn.active i {
+            color: #818CF8;
+            transform: scale(1.1);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glass);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Content Area */
+        .dash-content {
+            flex: 1;
+            padding: 28px 32px;
+            overflow-y: auto;
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section Header */
+        .content-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .content-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+
+        /* Metrics / Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Setting Card */
+        .setting-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .setting-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .setting-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .setting-info h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .setting-info p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.12);
+            transition: .3s;
+            border-radius: 34px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-primary);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Form Inputs */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .sapphire-input {
+            width: 100%;
+            background: rgba(11, 14, 20, 0.7);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.88rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .sapphire-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+        }
+
+        /* Tag Cloud for Bad Words */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid var(--border-glass);
+            min-height: 48px;
+        }
+
+        .word-tag {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.35);
+            color: #FDA4AF;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .word-tag button {
+            background: transparent;
+            border: none;
+            color: #FDA4AF;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .word-tag button:hover {
+            color: #fff;
+        }
+
+        /* Music Player Special Component */
+        .now-playing-card {
+            background: linear-gradient(135deg, rgba(29, 185, 84, 0.12), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(29, 185, 84, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .track-hero {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .track-thumb {
+            width: 84px;
+            height: 84px;
+            border-radius: 14px;
+            background: #121212;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #1DB954;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .track-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .track-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-artist {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            margin-top: 2px;
+        }
+
+        .player-bar-wrap {
+            width: 100%;
+        }
+
+        .player-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .player-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1DB954, #1ed760);
+            width: 48%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .player-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .player-ctrls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .ctrl-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .ctrl-btn.play-btn {
+            width: 48px;
+            height: 48px;
+            background: #1DB954;
+            color: #000;
+            border: none;
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+        }
+
+        .ctrl-btn.play-btn:hover {
+            background: #1ed760;
+            transform: scale(1.1);
+        }
+
+        /* Leaderboard Table */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--border-glass);
+            background: var(--bg-card);
+        }
+
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .lb-table th {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 16px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .lb-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.88rem;
+        }
+
+        .lb-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #F59E0B, #D97706); color: #000; }
+        .rank-2 { background: linear-gradient(135deg, #94A3B8, #64748B); color: #fff; }
+        .rank-3 { background: linear-gradient(135deg, #B45309, #78350F); color: #fff; }
+
+        /* Floating Save Bar */
+        .save-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-highlight);
+            backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .save-bar.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .btn-save {
+            background: var(--accent-primary);
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #4752C4;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .btn-reset:hover {
+            color: #fff;
+        }
+
+        /* Overlay for Mobile Sidebar */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 85;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .dash-sidebar {
+                position: fixed;
+                top: 64px;
+                bottom: 0;
+                left: 0;
+                transform: translateX(-100%);
+                box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            }
+
+            .dash-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .dash-content {
+                padding: 20px 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .navbar-right .user-name {
+                display: none;
+            }
+
+            .server-switcher-btn span {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-title {
+                font-size: 1.4rem;
+            }
+
+            .save-bar {
+                width: 90%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header class="dash-navbar">
+        <div class="navbar-left">
+            <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="#" class="brand-box">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-gem"></i>
+                </div>
+                <div class="brand-name">Sapphire<span>Bot</span></div>
+            </a>
+            <div class="status-pill">
+                <span class="status-dot"></span>
+                <span>Online (18ms)</span>
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <!-- Server Switcher -->
+            <button class="server-switcher-btn" id="btnServerSwitch">
+                <i class="fa-solid fa-server"></i>
+                <span id="currentServerName">UltimateSky HQ</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+            </button>
+
+            <!-- User Badge -->
+            <div class="user-profile-badge">
+                <div class="user-avatar">F</div>
+                <span class="user-name">Ferry (Admin)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Main Container -->
+    <div class="dash-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="dash-sidebar" id="dashSidebar">
+            <div class="sidebar-section-label">Server Modules</div>
+            
+            <button class="nav-btn active" data-tab="overview">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Overview &amp; Stats</span>
+            </button>
+            
+            <button class="nav-btn" data-tab="general">
+                <i class="fa-solid fa-sliders"></i>
+                <span>General Settings</span>
+            </button>
+
+            <button class="nav-btn" data-tab="automod">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Auto Moderation</span>
+            </button>
+
+            <button class="nav-btn" data-tab="autoresponder">
+                <i class="fa-solid fa-message"></i>
+                <span>Auto Responder</span>
+            </button>
+
+            <button class="nav-btn" data-tab="leveling">
+                <i class="fa-solid fa-trophy"></i>
+                <span>Leveling &amp; XP</span>
+            </button>
+
+            <button class="nav-btn" data-tab="tickets">
+                <i class="fa-solid fa-ticket"></i>
+                <span>Ticket Transcripts</span>
+            </button>
+
+            <button class="nav-btn" data-tab="music">
+                <i class="fa-solid fa-music"></i>
+                <span>Music Player</span>
+            </button>
+
+            <div class="sidebar-section-label">System</div>
+            <button class="nav-btn" onclick="showToast('Mengunduh audit log database...')">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Export Audit Logs</span>
+            </button>
+
+            <div class="sidebar-footer">
+                <div>Sapphire Core v2.5.0</div>
+                <div style="margin-top: 4px; color: #5865F2;">● Discord Gateway Ready</div>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Body -->
+        <main class="dash-content">
+
+            <!-- TAB 1: OVERVIEW -->
+            <section class="tab-pane active" id="tab-overview">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-chart-pie" style="color: #5865F2;"></i> Server Dashboard</h1>
+                        <p class="content-desc">Live telemetry and metrics for <strong style="color:#fff;" id="ovServerLabel">UltimateSky HQ</strong></p>
+                    </div>
+                    <button class="server-switcher-btn" style="background: rgba(88, 101, 242, 0.15); border-color: var(--accent-primary);" onclick="showToast('Server metrics synced!')">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh
+                    </button>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap" style="background: rgba(88, 101, 242, 0.15); color: #818CF8;">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-value" id="statMemberCount">1,420</div>
+                        <div class="stat-label">Total Server Members</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #34D399;">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div class="stat-value" id="statPing">18 ms</div>
+                        <div class="stat-label">Gateway WebSocket Ping</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24;">
+                            <i class="fa-solid fa-terminal"></i>
+                        </div>
+                        <div class="stat-value" id="statCommands">28,491</div>
+                        <div class="stat-label">Commands Processed</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap" style="background: rgba(6, 182, 212, 0.15); color: #22D3EE;">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="stat-value" id="statUptime">99.98%</div>
+                        <div class="stat-label">Uptime (14d 6h)</div>
+                    </div>
+                </div>
+
+                <!-- Quick Module Status -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3><i class="fa-solid fa-toggle-on" style="color: #10B981; margin-right: 6px;"></i> Active Bot Modules</h3>
+                            <p>Current runtime state of Sapphire bot systems on this guild</p>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 10px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px;">
+                            <span style="color: #10B981;">● Auto Moderation</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Anti-Spam &amp; Word Filter ON</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px;">
+                            <span style="color: #10B981;">● Music Engine</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Lavalink Node-1 (Connected)</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px;">
+                            <span style="color: #10B981;">● Leveling System</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Global XP Tracking Enabled</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px;">
+                            <span style="color: #10B981;">● Ticket Transcripts</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">HTML &amp; PDF Archiver Ready</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: GENERAL SETTINGS -->
+            <section class="tab-pane" id="tab-general">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-sliders" style="color: #5865F2;"></i> General Configuration</h1>
+                        <p class="content-desc">Customize prefixes, channels, roles, and welcome notifications.</p>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Bot Master Switch</h3>
+                            <p>Enable or disable Sapphire responses on this server</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked onchange="triggerChange()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Server Prefix &amp; Audit Logging</h3>
+                            <p>Configure bot command trigger and log destination</p>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Command Prefix</label>
+                            <input type="text" class="sapphire-input" value="!" oninput="triggerChange()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Audit Log Channel</label>
+                            <select class="sapphire-input" id="selectLogChannel" onchange="triggerChange()">
+                                <option># 📝-mod-logs</option>
+                                <option># 🛡️-security</option>
+                                <option># 🤖-bot-commands</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto Role for New Members</label>
+                            <select class="sapphire-input" id="selectAutoRole" onchange="triggerChange()">
+                                <option>@Member</option>
+                                <option>@Verified</option>
+                                <option>@Gamer</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Welcome &amp; Goodbye Embed</h3>
+                            <p>Send custom rich cards when a user joins the server</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked onchange="triggerChange()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">Custom Welcome Message</label>
+                            <textarea class="sapphire-input" rows="3" oninput="triggerChange()">Selamat datang {user} di server {server}! Jangan lupa baca #rules dan ambil role di #roles ya!</textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: AUTO MODERATION -->
+            <section class="tab-pane" id="tab-automod">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-shield-halved" style="color: #F43F5E;"></i> Auto Moderation</h1>
+                        <p class="content-desc">Protect your community against spam, discord invite links, and profanity.</p>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Anti-Spam Filter</h3>
+                            <p>Automatically timeout members sending >5 messages within 3 seconds</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked onchange="triggerChange()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Anti-Invite Link Protection</h3>
+                            <p>Instantly delete unauthorized Discord invite links from non-admins</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked onchange="triggerChange()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Profanity &amp; Bad Words Blacklist</h3>
+                            <p>Delete messages containing blocked words and log incidents</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 10px;">
+                        <input type="text" id="newBadWord" class="sapphire-input" placeholder="Ketik kata yang ingin diblokir..." style="flex: 1;">
+                        <button class="btn-save" onclick="addCustomBadWord()"><i class="fa-solid fa-plus"></i> Tambah</button>
+                    </div>
+                    <div class="tags-container" id="badWordsContainer">
+                        <span class="word-tag" data-word="toxic">toxic <button onclick="removeBadWord(this)"><i class="fa-solid fa-xmark"></i></button></span>
+                        <span class="word-tag" data-word="scam">scam <button onclick="removeBadWord(this)"><i class="fa-solid fa-xmark"></i></button></span>
+                        <span class="word-tag" data-word="free-nitro">free-nitro <button onclick="removeBadWord(this)"><i class="fa-solid fa-xmark"></i></button></span>
+                        <span class="word-tag" data-word="hack">hack <button onclick="removeBadWord(this)"><i class="fa-solid fa-xmark"></i></button></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: AUTO RESPONDER -->
+            <section class="tab-pane" id="tab-autoresponder">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-message" style="color: #06B6D4;"></i> Custom Auto Responder</h1>
+                        <p class="content-desc">Create automated keyword triggers and replies without coding.</p>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3>Buat Trigger Baru</h3>
+                            <p>Bot akan otomatis membalas saat kata kunci dikirim di chat</p>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Trigger Keyword</label>
+                            <input type="text" id="arTrigger" class="sapphire-input" placeholder="contoh: !ip / halo / link">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bot Response</label>
+                            <input type="text" id="arReply" class="sapphire-input" placeholder="contoh: IP server adalah play.ultimatesky.net">
+                        </div>
+                    </div>
+                    <button class="btn-save" style="margin-top: 14px;" onclick="addAutoResponder()"><i class="fa-solid fa-plus"></i> Simpan Responder</button>
+
+                    <div style="margin-top: 20px;" id="arList">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <span style="font-family: 'JetBrains Mono'; color: #06B6D4; font-weight: 700;">!rules</span>
+                                <div style="color: var(--text-secondary); font-size: 0.82rem; margin-top: 2px;">Silakan baca aturan lengkap server kami di #announcements!</div>
+                            </div>
+                            <button class="btn-reset" style="color: #F43F5E;" onclick="this.parentElement.remove(); showToast('Responder dihapus!')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: LEVELING & LEADERBOARD -->
+            <section class="tab-pane" id="tab-leveling">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-trophy" style="color: #F59E0B;"></i> Leveling &amp; Leaderboard</h1>
+                        <p class="content-desc">Reward active members with XP, rank badges, and automatic role rewards.</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="lb-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Member</th>
+                                <th>Level</th>
+                                <th>Total XP</th>
+                                <th>Role Tier</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="rank-badge rank-1">1</span></td>
+                                <td><strong>Ferry#0001</strong></td>
+                                <td><span style="color: #F59E0B; font-weight: 700;">Level 48</span></td>
+                                <td>142,500 XP</td>
+                                <td><span style="background: rgba(245,158,11,0.15); color: #F59E0B; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">🌟 Legend</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge rank-2">2</span></td>
+                                <td><strong>AlexCyber#1337</strong></td>
+                                <td><span style="color: #94A3B8; font-weight: 700;">Level 42</span></td>
+                                <td>118,200 XP</td>
+                                <td><span style="background: rgba(148,163,184,0.15); color: #94A3B8; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">💎 Diamond</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge rank-3">3</span></td>
+                                <td><strong>Kenshi_Rider#9999</strong></td>
+                                <td><span style="color: #B45309; font-weight: 700;">Level 38</span></td>
+                                <td>95,400 XP</td>
+                                <td><span style="background: rgba(180,83,9,0.15); color: #FBBF24; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">🥇 Gold VIP</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge" style="color: var(--text-muted);">4</span></td>
+                                <td><strong>Sarah_Dev#4040</strong></td>
+                                <td>Level 31</td>
+                                <td>68,100 XP</td>
+                                <td><span style="background: rgba(255,255,255,0.05); color: var(--text-secondary); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem;">Elite</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 6: TICKETS & TRANSCRIPTS -->
+            <section class="tab-pane" id="tab-tickets">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-ticket" style="color: #10B981;"></i> Ticket Transcripts</h1>
+                        <p class="content-desc">Saved cloud transcripts with full message logs, attachments, and PDF exports.</p>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px; margin-bottom: 14px;">
+                        <div>
+                            <strong style="color: #10B981;">ticket-0042</strong> — Billing Support
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">Opened by Ferry • Closed 2 hours ago</div>
+                        </div>
+                        <button class="server-switcher-btn" onclick="showToast('Transkrip HTML berhasil diekspor!')"><i class="fa-solid fa-download"></i> Unduh Transkrip</button>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.6; max-height: 180px; overflow-y: auto;">
+                        <div style="color: #64748B;">[14:20:11] <strong>System:</strong> Ticket channel created by @Ferry</div>
+                        <div style="color: #94A3B8;">[14:20:15] <strong>Ferry:</strong> Halo tim support, pembayaran diamond store saya pending di order #9821.</div>
+                        <div style="color: #34D399;">[14:21:02] <strong>Staff_Bot:</strong> Halo! Data transaksi Anda sudah kami verifikasi dan diproses. Terima kasih!</div>
+                        <div style="color: #64748B;">[14:22:00] <strong>System:</strong> Ticket closed and transcript archived.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: MUSIC PLAYER -->
+            <section class="tab-pane" id="tab-music">
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title"><i class="fa-solid fa-music" style="color: #1DB954;"></i> Web Music Controller</h1>
+                        <p class="content-desc">Live audio controller powered by high-speed Lavalink node.</p>
+                    </div>
+                </div>
+
+                <!-- Live Now Playing Card -->
+                <div class="now-playing-card">
+                    <div class="track-hero">
+                        <div class="track-thumb">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div class="track-meta">
+                            <div style="font-size: 0.75rem; font-weight: 700; color: #1DB954; text-transform: uppercase; letter-spacing: 0.5px;">● NOW PLAYING</div>
+                            <div class="track-title" id="playerTitle">Cyberpunk 2077 — Night City OST</div>
+                            <div class="track-artist">Requested by <strong style="color:#fff;">Ferry</strong> • High Quality 320kbps</div>
+                        </div>
+                    </div>
+
+                    <div class="player-bar-wrap">
+                        <div class="player-bar" onclick="seekTrack(event)">
+                            <div class="player-bar-fill" id="playerFill"></div>
+                        </div>
+                        <div class="player-time">
+                            <span id="playerCurrent">1:42</span>
+                            <span>3:35</span>
+                        </div>
+                    </div>
+
+                    <div class="player-ctrls">
+                        <button class="ctrl-btn" onclick="showToast('Mode Repeat: Single')"><i class="fa-solid fa-repeat"></i></button>
+                        <button class="ctrl-btn" onclick="showToast('Memutar lagu sebelumnya...')"><i class="fa-solid fa-backward-step"></i></button>
+                        <button class="ctrl-btn play-btn" id="btnPlayPause" onclick="togglePlayMusic()"><i class="fa-solid fa-pause"></i></button>
+                        <button class="ctrl-btn" onclick="showToast('Skip ke lagu berikutnya!')"><i class="fa-solid fa-forward-step"></i></button>
+                        <button class="ctrl-btn" onclick="showToast('Volume disetel 80%')"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>
+                </div>
+
+                <!-- Music Queue -->
+                <div class="setting-card">
+                    <div class="setting-header">
+                        <div class="setting-info">
+                            <h3><i class="fa-solid fa-list-ol" style="margin-right: 6px;"></i> Antrean Lagu (Queue)</h3>
+                            <p>3 lagu menunggu untuk diputar di voice channel <strong>🔊 General Voice</strong></p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="color: var(--text-muted); font-weight: 700;">1</span>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.88rem;">The Weeknd — Blinding Lights</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">03:20 • Req by Alex</div>
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-brands fa-youtube" style="color:#f43f5e;"></i> YouTube</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="color: var(--text-muted); font-weight: 700;">2</span>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.88rem;">Daft Punk — Get Lucky</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">04:08 • Req by Sarah</div>
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-brands fa-spotify" style="color:#10b981;"></i> Spotify</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Floating Save Changes Bar -->
+    <div class="save-bar" id="saveBar">
+        <span style="font-size: 0.88rem; font-weight: 600; color: #fff;">⚠️ Ada perubahan yang belum disimpan!</span>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-reset" onclick="dismissSaveBar()">Reset</button>
+            <button class="btn-save" onclick="saveAllChanges()"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+        </div>
+    </div>
+
+    <!-- Interactive Script -->
+    <script>
+        // Tab Navigation
+        const navButtons = document.querySelectorAll('.nav-btn[data-tab]');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        const dashSidebar = document.getElementById('dashSidebar');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const saveBar = document.getElementById('saveBar');
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-tab');
+                
+                navButtons.forEach(b => b.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+
+                btn.classList.add('active');
+                const targetEl = document.getElementById('tab-' + targetTab);
+                if (targetEl) targetEl.classList.add('active');
+
+                // Close mobile sidebar
+                dashSidebar.classList.remove('open');
+                sidebarBackdrop.classList.remove('active');
+            });
+        });
+
+        // Mobile Sidebar Controls
+        mobileMenuToggle.addEventListener('click', () => {
+            dashSidebar.classList.toggle('open');
+            sidebarBackdrop.classList.toggle('active');
+        });
+
+        sidebarBackdrop.addEventListener('click', () => {
+            dashSidebar.classList.remove('open');
+            sidebarBackdrop.classList.remove('active');
+        });
+
+        // Server Switcher & Data Sync Engine
+        const mockServers = ["UltimateSky HQ", "UMN Dev Community", "Gamer Lounge", "Cyberpunk Hub"];
+        let mockServerIdx = 0;
+        let liveGuilds = [];
+        let liveGuildIdx = 0;
+
+        // Backend API Bridge & Live Sync Logic
+        let backendUrl = localStorage.getItem('sapphire_backend_url') || 'http://localhost:5000';
+        let isBackendConnected = false;
+        let activeGuildId = null;
+
+        function applyGuildDetails(guild) {
+            activeGuildId = guild.id;
+            document.getElementById('currentServerName').textContent = guild.name;
+            document.getElementById('ovServerLabel').textContent = guild.name;
+            
+            // Member count card
+            if (guild.member_count !== undefined) {
+                document.getElementById('statMemberCount').textContent = Number(guild.member_count).toLocaleString();
+            }
+
+            // Populate text channels dropdown selector
+            const logSelect = document.getElementById('selectLogChannel');
+            if (logSelect && guild.text_channels) {
+                logSelect.innerHTML = guild.text_channels.map(c => `<option value="${c.id}"># ${c.name}</option>`).join('');
+            }
+
+            // Populate roles dropdown selector
+            const roleSelect = document.getElementById('selectAutoRole');
+            if (roleSelect && guild.roles) {
+                roleSelect.innerHTML = guild.roles.map(r => `<option value="${r.id}">@${r.name}</option>`).join('');
+            }
+        }
+
+        document.getElementById('btnServerSwitch').addEventListener('click', () => {
+            if (isBackendConnected && liveGuilds.length > 0) {
+                liveGuildIdx = (liveGuildIdx + 1) % liveGuilds.length;
+                const guild = liveGuilds[liveGuildIdx];
+                applyGuildDetails(guild);
+                showToast(`Beralih ke server Discord: ${guild.name}`);
+            } else {
+                mockServerIdx = (mockServerIdx + 1) % mockServers.length;
+                const name = mockServers[mockServerIdx];
+                document.getElementById('currentServerName').textContent = name;
+                document.getElementById('ovServerLabel').textContent = name;
+                document.getElementById('statMemberCount').textContent = "1,420";
+                showToast(`Beralih ke server simulasi: ${name}`);
+            }
+        });
+
+        async function checkBackendConnection() {
+            try {
+                const res = await fetch(`${backendUrl}/api/bot_status`, { mode: 'cors' });
+                if (res.ok) {
+                    const data = await res.json();
+                    isBackendConnected = true;
+                    updateBackendStatusUI(true, data);
+                    
+                    // Update live ping
+                    if (data.ping !== undefined) {
+                        document.getElementById('statPing').textContent = `${data.ping} ms`;
+                    }
+                    
+                    fetchLiveGuilds();
+                } else {
+                    isBackendConnected = false;
+                    updateBackendStatusUI(false);
+                }
+            } catch (err) {
+                isBackendConnected = false;
+                updateBackendStatusUI(false);
+            }
+        }
+
+        function updateBackendStatusUI(connected, data = {}) {
+            const statusPill = document.querySelector('.status-pill');
+            if (statusPill) {
+                if (connected) {
+                    statusPill.innerHTML = `<span class="status-dot" style="background:#10b981; box-shadow:0 0 10px #10b981;"></span><span style="color:#34d399;">Backend Online (${data.ping || 18}ms)</span>`;
+                    statusPill.title = `Connected to Bot: ${data.bot_name || 'Sapphire Bot'}`;
+                } else {
+                    statusPill.innerHTML = `<span class="status-dot" style="background:#06b6d4;"></span><span>Preview Mode (Click to Sync)</span>`;
+                    statusPill.style.cursor = 'pointer';
+                    statusPill.onclick = promptBackendUrl;
+                }
+            }
+        }
+
+        function promptBackendUrl() {
+            const input = prompt("Masukkan URL Backend Sapphire Bot (contoh: http://localhost:5000 atau URL hosting backend Anda):", backendUrl);
+            if (input !== null) {
+                backendUrl = input.trim().replace(/\/$/, '');
+                localStorage.setItem('sapphire_backend_url', backendUrl);
+                showToast(`Menghubungkan ke ${backendUrl}...`);
+                checkBackendConnection();
+            }
+        }
+
+        async function fetchLiveGuilds() {
+            try {
+                const res = await fetch(`${backendUrl}/api/guilds`, { mode: 'cors' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.guilds && data.guilds.length > 0) {
+                        liveGuilds = data.guilds;
+                        liveGuildIdx = 0;
+                        renderLiveGuilds();
+                    }
+                }
+            } catch (e) {
+                console.log('Error fetching live guilds:', e);
+            }
+        }
+
+        function renderLiveGuilds() {
+            if (!liveGuilds.length) return;
+            const current = liveGuilds[liveGuildIdx];
+            applyGuildDetails(current);
+            showToast(`Sinkronisasi dengan server Discord: ${current.name}`, 'success');
+        }
+
+        // Check backend on start
+        checkBackendConnection();
+
+        // Trigger unsaved state
+        function triggerChange() {
+            saveBar.classList.add('show');
+        }
+
+        function dismissSaveBar() {
+            saveBar.classList.remove('show');
+            showToast('Pengaturan dikembalikan', 'info');
+        }
+
+        async function saveAllChanges() {
+            saveBar.classList.remove('show');
+            
+            // If connected to live backend, send real API payload
+            if (isBackendConnected && activeGuildId) {
+                try {
+                    const payload = {
+                        guild_id: activeGuildId,
+                        automod_enabled: 1,
+                        leveling_enabled: 1,
+                        tickets_enabled: 1
+                    };
+                    const res = await fetch(`${backendUrl}/api/save_config`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        showToast('Pengaturan berhasil disimpan ke Database Backend!', 'success');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Failed to save to backend:', err);
+                }
+            }
+            
+            showToast('Pengaturan berhasil disimpan ke Database!', 'success');
+        }
+
+        // Bad words management
+        async function addCustomBadWord() {
+            const input = document.getElementById('newBadWord');
+            const word = input.value.trim().toLowerCase();
+            if (!word) return;
+            
+            const container = document.getElementById('badWordsContainer');
+            const span = document.createElement('span');
+            span.className = 'word-tag';
+            span.setAttribute('data-word', word);
+            span.innerHTML = `${word} <button onclick="removeBadWord(this)"><i class="fa-solid fa-xmark"></i></button>`;
+            container.appendChild(span);
+            input.value = '';
+            
+            if (isBackendConnected && activeGuildId) {
+                try {
+                    await fetch(`${backendUrl}/api/add_bad_word`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ guild_id: activeGuildId, word: word })
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            
+            triggerChange();
+            showToast(`Kata "${word}" ditambahkan ke blacklist`);
+        }
+
+        async function removeBadWord(btn) {
+            const parent = btn.parentElement;
+            const word = parent.getAttribute('data-word');
+            parent.remove();
+            
+            if (isBackendConnected && activeGuildId && word) {
+                try {
+                    await fetch(`${backendUrl}/api/remove_bad_word`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ guild_id: activeGuildId, word: word })
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            
+            triggerChange();
+        }
+
+        // Auto Responder management
+        async function addAutoResponder() {
+            const tr = document.getElementById('arTrigger').value.trim();
+            const re = document.getElementById('arReply').value.trim();
+            if (!tr || !re) {
+                showToast('Harap isi trigger dan respons', 'error');
+                return;
+            }
+
+            const list = document.getElementById('arList');
+            const item = document.createElement('div');
+            item.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;";
+            item.innerHTML = `
+                <div>
+                    <span style="font-family: 'JetBrains Mono'; color: #06B6D4; font-weight: 700;">${tr}</span>
+                    <div style="color: var(--text-secondary); font-size: 0.82rem; margin-top: 2px;">${re}</div>
+                </div>
+                <button class="btn-reset" style="color: #F43F5E;" onclick="this.parentElement.remove(); showToast('Responder dihapus!')"><i class="fa-solid fa-trash"></i></button>
+            `;
+            list.appendChild(item);
+            document.getElementById('arTrigger').value = '';
+            document.getElementById('arReply').value = '';
+            
+            if (isBackendConnected && activeGuildId) {
+                try {
+                    await fetch(`${backendUrl}/api/add_custom_command`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ guild_id: activeGuildId, trigger: tr, response: re })
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            
+            showToast('Auto Responder baru disimpan!');
+        }
+
+        // Music Player Toggle
+        let isPlaying = true;
+        function togglePlayMusic() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('btnPlayPause');
+            btn.innerHTML = isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+            showToast(isPlaying ? 'Melanjutkan pemutaran musik' : 'Musik di-pause');
+        }
+
+        function seekTrack(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            document.getElementById('playerFill').style.width = (pct * 100) + '%';
+            showToast(`Seek ke ${(pct * 100).toFixed(0)}%`);
+        }
+
+        // Toast Feedback System
+        function showToast(message, type = 'info') {
+            const existing = document.getElementById('sapphireToast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'sapphireToast';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10B981; margin-right: 8px;"></i> ${message}`;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                background: rgba(15, 23, 42, 0.95);
+                border: 1px solid var(--border-highlight);
+                color: #F8FAFC;
+                padding: 12px 20px;
+                border-radius: 14px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                z-index: 9999;
+                backdrop-filter: blur(10px);
+                animation: slideToast 0.3s ease;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

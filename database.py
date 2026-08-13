@@ -168,6 +168,18 @@ async def init_db():
                         response TEXT
                     )
                 ''')
+                await conn.execute('''
+                    CREATE TABLE IF NOT EXISTS music_logs (
+                        id SERIAL PRIMARY KEY,
+                        guild_id BIGINT,
+                        user_id BIGINT,
+                        username TEXT,
+                        song_title TEXT,
+                        song_url TEXT,
+                        duration INTEGER DEFAULT 0,
+                        played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
     else:
         # SQLite (lokal)
         async with aiosqlite.connect(DB_NAME) as db:
@@ -516,22 +528,44 @@ async def get_custom_commands(guild_id: int):
 
 # ─── Music Log Functions ──────────────────────────────────────────────────────
 async def log_music(guild_id: int, user_id: int, username: str, song_title: str, song_url: str, duration: int = 0):
-    async with aiosqlite.connect(DB_NAME) as db:
-        await db.execute(
-            'INSERT INTO music_logs (guild_id, user_id, username, song_title, song_url, duration) VALUES (?, ?, ?, ?, ?, ?)',
-            (guild_id, user_id, username, song_title, song_url, duration)
-        )
-        await db.commit()
+    if USE_POSTGRES:
+        pool = await get_pg_pool()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                'INSERT INTO music_logs (guild_id, user_id, username, song_title, song_url, duration) VALUES ($1, $2, $3, $4, $5, $6)',
+                guild_id, user_id, username, song_title, song_url, duration
+            )
+    else:
+        async with aiosqlite.connect(DB_NAME) as db:
+            await db.execute(
+                'INSERT INTO music_logs (guild_id, user_id, username, song_title, song_url, duration) VALUES (?, ?, ?, ?, ?, ?)',
+                (guild_id, user_id, username, song_title, song_url, duration)
+            )
+            await db.commit()
 
 async def get_music_logs(guild_id: int, limit: int = 50):
-    async with aiosqlite.connect(DB_NAME) as db:
-        async with db.execute(
-            'SELECT id, user_id, username, song_title, song_url, duration, played_at FROM music_logs WHERE guild_id = ? ORDER BY played_at DESC LIMIT ?',
-            (guild_id, limit)
-        ) as cursor:
-            return await cursor.fetchall()
+    if USE_POSTGRES:
+        pool = await get_pg_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                'SELECT id, user_id, username, song_title, song_url, duration, played_at FROM music_logs WHERE guild_id = $1 ORDER BY played_at DESC LIMIT $2',
+                guild_id, limit
+            )
+            return [(r['id'], r['user_id'], r['username'], r['song_title'], r['song_url'], r['duration'], r['played_at']) for r in rows]
+    else:
+        async with aiosqlite.connect(DB_NAME) as db:
+            async with db.execute(
+                'SELECT id, user_id, username, song_title, song_url, duration, played_at FROM music_logs WHERE guild_id = ? ORDER BY played_at DESC LIMIT ?',
+                (guild_id, limit)
+            ) as cursor:
+                return await cursor.fetchall()
 
 async def clear_music_logs(guild_id: int):
-    async with aiosqlite.connect(DB_NAME) as db:
-        await db.execute('DELETE FROM music_logs WHERE guild_id = ?', (guild_id,))
-        await db.commit()
+    if USE_POSTGRES:
+        pool = await get_pg_pool()
+        async with pool.acquire() as conn:
+            await conn.execute('DELETE FROM music_logs WHERE guild_id = $1', guild_id)
+    else:
+        async with aiosqlite.connect(DB_NAME) as db:
+            await db.execute('DELETE FROM music_logs WHERE guild_id = ?', (guild_id,))
+            await db.commit()

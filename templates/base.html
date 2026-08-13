@@ -14,8 +14,20 @@
 <body class="{% block body_class %}{% endblock %}">
 
     {% if session.get('logged_in') and not is_login_page %}
+    <!-- Mobile Header -->
+    <div class="mobile-navbar">
+        <button type="button" class="btn-sidebar-toggle" id="btnSidebarToggle">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="mobile-brand">
+            <i class="fa-solid fa-robot"></i> ProBot
+        </div>
+        <div style="width: 32px;"></div>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <!-- Sidebar for logged in pages -->
-    <div class="sidebar">
+    <div class="sidebar" id="mainSidebar">
         <div class="brand">
             <i class="fa-solid fa-robot"></i>
             <span>ProBot</span>
